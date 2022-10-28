@@ -46,7 +46,7 @@ class PinCodeTextField extends StatefulWidget {
   final Duration blinkDuration;
 
   /// returns the current typed text in the fields
-  final ValueChanged<String>? onChanged;
+  final ValueChanged<String> onChanged;
 
   /// returns the typed text when all pins are set
   final ValueChanged<String>? onCompleted;
@@ -201,6 +201,8 @@ class PinCodeTextField extends StatefulWidget {
   /// Enable auto unfocus
   final bool autoUnfocus;
 
+  final bool notShowDialog;
+
   PinCodeTextField({
     Key? key,
     required this.appContext,
@@ -211,7 +213,7 @@ class PinCodeTextField extends StatefulWidget {
     this.obscuringWidget,
     this.blinkWhenObscuring = false,
     this.blinkDuration = const Duration(milliseconds: 500),
-    this.onChanged,
+    required this.onChanged,
     this.onCompleted,
     this.backgroundColor,
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
@@ -257,6 +259,7 @@ class PinCodeTextField extends StatefulWidget {
     this.textGradient,
     this.readOnly = false,
     this.autoUnfocus = true,
+    this.notShowDialog = true,
 
     /// Default for [AutofillGroup]
     this.onAutoFillDisposeAction = AutofillContextAction.commit,
@@ -300,8 +303,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
           affirmativeText: widget.dialogConfig!.affirmativeText,
           dialogContent: widget.dialogConfig!.dialogContent,
           dialogTitle: widget.dialogConfig!.dialogTitle,
-          negativeText: widget.dialogConfig!.negativeText,
-        );
+          negativeText: widget.dialogConfig!.negativeText);
   PinTheme get _pinTheme => widget.pinTheme;
 
   Timer? _blinkDebounce;
@@ -463,7 +465,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
 
           if (widget.autoDismissKeyboard) _focusNode!.unfocus();
         }
-        widget.onChanged?.call(currentText);
+        widget.onChanged(currentText);
       }
 
       _setTextToInput(currentText);
@@ -531,16 +533,6 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
     Color relevantInActiveColor = _pinTheme.inactiveColor;
     if (isInErrorMode) relevantInActiveColor = _pinTheme.errorBorderColor;
     return relevantInActiveColor;
-  }
-
-  List<BoxShadow>? _getBoxShadowFromIndex(int index) {
-    if (_selectedIndex == index) {
-      return _pinTheme.activeBoxShadows;
-    } else if (_selectedIndex > index) {
-      return _pinTheme.inActiveBoxShadows;
-    }
-
-    return [];
   }
 
   Widget _renderPinField({
@@ -658,6 +650,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
   }
 
   Future<void> _showPasteDialog(String pastedText) {
+    if (notShowDialog) return;
     final formattedPastedText = pastedText
         .trim()
         .substring(0, min(pastedText.trim().length, widget.length));
@@ -726,7 +719,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
 
   @override
   Widget build(BuildContext context) {
-    Directionality textField = Directionality(
+    var textField = Directionality(
       textDirection: widget.errorTextDirection,
       child: Padding(
         padding: widget.errorTextMargin,
@@ -775,7 +768,6 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
           ),
           scrollPadding: widget.scrollPadding,
           readOnly: widget.readOnly,
-          obscureText: widget.obscureText,
         ),
       ),
     );
@@ -852,10 +844,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
                 color: widget.enableActiveFill
                     ? _getFillColorFromIndex(i)
                     : Colors.transparent,
-                boxShadow: (_pinTheme.activeBoxShadows != null ||
-                        _pinTheme.inActiveBoxShadows != null)
-                    ? _getBoxShadowFromIndex(i)
-                    : widget.boxShadows,
+                boxShadow: widget.boxShadows,
                 shape: _pinTheme.shape == PinCodeFieldShape.circle
                     ? BoxShape.circle
                     : BoxShape.rectangle,
