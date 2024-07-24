@@ -650,7 +650,7 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
   }
 
   Future<void> _showPasteDialog(String pastedText) {
-    if (notShowDialog) return;
+    if (widget.notShowDialog) return Future.value();
     final formattedPastedText = pastedText
         .trim()
         .substring(0, min(pastedText.trim().length, widget.length));
